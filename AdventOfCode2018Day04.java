@@ -40,7 +40,7 @@ class Entry implements Comparable<Entry>{
     }
 }
 
-public class AdventOfCode2018Day4 {
+public class AdventOfCode2018Day04 {
     
     private static int searchGuard(ArrayList<Entry> guards, Entry e) {
         int i = 0;

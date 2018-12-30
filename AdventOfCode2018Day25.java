@@ -61,7 +61,7 @@ public class AdventOfCode2018Day25 {
         	} while (found);
         }
         System.out.println("Answer to the first part: " + group);
-        System.out.println("The second part will open only when I am done with a few more days so I will have to wait until next time.");
+        System.out.println("The second part will open only when I am done with the second part of Day 23 so I will have to wait until next time.");
     } 
 }
 

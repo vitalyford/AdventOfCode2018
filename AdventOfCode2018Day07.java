@@ -30,7 +30,7 @@ class Job implements Comparable<Job> {
     }
 }
 
-public class AdventOfCode2018Day7 {
+public class AdventOfCode2018Day07 {
     private static void findVerticesWithNoPredecessors(TreeMap<Character, LinkedList<Character>> tm, PriorityQueue<Character> pq) {
         Collection<LinkedList<Character>> values = tm.values();
         ArrayList<Character> withPredecessors = new ArrayList<>();

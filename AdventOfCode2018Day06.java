@@ -12,7 +12,7 @@ class Point {
     }
 }
 
-public class AdventOfCode2018Day6 {
+public class AdventOfCode2018Day06 {
     public static void main(String args[]) {
         Scanner s = new Scanner(System.in);
         ArrayList<Point> list = new ArrayList<>();

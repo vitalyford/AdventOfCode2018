@@ -23,7 +23,7 @@ class Marble {
 	}
 }
 
-public class AdventOfCode2018Day9 {
+public class AdventOfCode2018Day09 {
     
     public static void main(String args[]) {
         Scanner s = new Scanner(System.in);

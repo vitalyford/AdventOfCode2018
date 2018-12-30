@@ -58,7 +58,7 @@ class Node {
 	}
 }
 
-public class AdventOfCode2018Day8 {
+public class AdventOfCode2018Day08 {
 	
 	private static int buildTree(Scanner s, Node parent) {
 		int sum = 0;

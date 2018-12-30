@@ -2,7 +2,7 @@ package del;
 
 import java.util.*;
 
-public class AdventOfCode2018Day5 {
+public class AdventOfCode2018Day05 {
     
     private static int react(String s) {
         // could be faster if inserted the string into a LinkedList at first but this one is not too bad either
