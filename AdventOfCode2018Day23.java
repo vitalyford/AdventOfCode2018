@@ -1,3 +1,5 @@
+package Day23;
+
 import java.util.*;
 
 /*
@@ -39,6 +41,38 @@ class Point implements Comparable<Point> {
 	public int getDistFromZero() {
 		return (Math.abs(x) + Math.abs(y) + Math.abs(z));
 	}
+	
+	public int getDistTo(Point p) {
+		return (int)Math.sqrt(Math.pow(x - p.x, 2) + Math.pow(y - p.y, 2) + Math.pow(z - p.z, 2));
+	}
+	
+	public String toString() {
+		return "(" + x + ", " + y + ", " + z + ") with radius " + r;
+	}
+}
+
+class Center implements Comparable<Center> {
+	int countInRange;
+	Point p;
+	
+	Center(Point p, int countInRange) {
+		this.p = p;
+		this.countInRange = countInRange;
+	}
+	
+	public int compareTo(Center c) {
+		if (c.countInRange == countInRange) {
+			if (p.getDistFromZero() == c.p.getDistFromZero()) {
+				return p.r - c.p.r; // smallest by size
+			}
+			return (p.getDistFromZero() - c.p.getDistFromZero()); // closest to 0,0,0
+		}
+		return c.countInRange - countInRange; // in range of most bots
+	}
+	
+	public String toString() {
+		return p.x + " " + p.y  + " " + p.z;
+	}
 }
 
 public class AdventOfCode2018Day23 {
@@ -59,59 +93,116 @@ public class AdventOfCode2018Day23 {
         
         Collections.sort(c);
         int countInRange = 0;
+        int minX = 0, maxX = 0, minY = 0, maxY = 0, minZ = 0, maxZ = 0, aveX = 0, aveY = 0, aveZ = 0;
         for (Point p : c) {
         	if (c.get(0).inRange(p)) countInRange++;
+        	aveX += p.x; aveY += p.y; aveZ += p.z;
+        	if (p.x < minX) minX = p.x;
+        	if (p.x > maxX) maxX = p.x;
+        	if (p.y < minY) minY = p.y;
+        	if (p.y > maxY) maxY = p.y;
+        	if (p.z < minZ) minZ = p.z;
+        	if (p.z > maxZ) maxZ = p.z;
+        	/*if (Math.abs(p.x) > overarching.r) overarching.r = Math.abs(p.x);
+        	if (Math.abs(p.y) > overarching.r) overarching.r = Math.abs(p.y);
+        	if (Math.abs(p.z) > overarching.r) overarching.r = Math.abs(p.z);*/
         }
+        Point min = new Point(minX, minY, minZ, 0);
+        Point max = new Point(maxX, maxY, maxZ, 0);
+        aveX /= c.size(); aveY /= c.size(); aveZ /= c.size();
+        Point overarching = new Point(aveX, aveY, aveZ, 0);
+        overarching.r = Math.max(min.getDistTo(overarching), max.getDistTo(overarching));
+        overarching.r = (int)Math.pow(2, Math.ceil(Math.log((double)overarching.r) / (double)Math.log(2.0)));
+        System.out.println("Origin: " + overarching);
         
         System.out.println("Answer to the first part: " + countInRange);
-        System.out.println("For the second part, it is obviously taking forever so I will have to work on it later when I get some free time.");
+        System.out.println("For the second part, it is taking forever and I did not have enough time to find the bug. I will work on it later when I get some free time unless I forget about it :)");
         
         // here comes the second part
-        // find all points that are in range of any of the other points and add them to the list
-        ArrayList<Point> allInRange = new ArrayList<>();
-        for (Point p : c) {
-        	findAllCloseTo(p, allInRange);
-        }
-        for (Point p : allInRange) p.compare = p.count;
-        Collections.sort(allInRange);
+        PriorityQueue<Center> pq = new PriorityQueue<>();
+        pq.add(new Center(overarching, c.size()));
         
-        // find all that are in range of the largest number of nanobots
-        ArrayList<Point> largest = new ArrayList<>();
-        int index = 0; 
-        Point curr = allInRange.get(index);
-        while (curr.count == allInRange.get(0).count) {
-        	largest.add(curr);
-        	index++;
-        	if (index >= allInRange.size()) break;
-        	curr = allInRange.get(index);
-        }
-        
-        int shortest = Integer.MAX_VALUE;
-        for (Point p : largest) {
-        	if (shortest > p.getDistFromZero()) {
-        		shortest = p.getDistFromZero();
+        while (!pq.isEmpty()) {
+        	Center curr = pq.poll();
+        	//System.out.println("In range: " + curr.countInRange + " " + curr.p.r);
+        	if (curr.p.r == 0) {
+        		System.out.println(curr + " " + curr.countInRange);
+        		System.out.println("Answer to the second part: " + (curr.p.x+curr.p.y+curr.p.z) + "\n");
+        		break;
+        	}
+        	else if (curr.p.r == 1) {
+        		//pq.clear();
+        		Center maxCenter = null;
+        		int largestCount = -1;
+        		for (int x = curr.p.x - 1; x <= curr.p.x + 1; x++) {
+        			for (int y = curr.p.y - 1; y <= curr.p.y + 1; y++) {
+        				for (int z = curr.p.z - 1; z <= curr.p.z + 1; z++) {
+        					Point p = new Point(x, y, z, 0);
+        					int count = finalCount(p, c);
+        					Center cen = new Center(p, count);
+        					if (maxCenter == null || (count >= largestCount && maxCenter.p.getDistFromZero() > cen.p.getDistFromZero())) {
+        						maxCenter = cen;
+        						largestCount = count;
+        					}
+        				}
+        			}
+        		}
+        		pq.add(maxCenter);
+        	}
+        	else {
+	        	// split into 8 Centers
+	        	Point p1 = new Point(curr.p.x+curr.p.r/2, curr.p.y+curr.p.r/2, curr.p.z+curr.p.r/2, curr.p.r/2);
+	        	pq.add(new Center(p1, countInRange(p1, c)));
+	        	Point p2 = new Point(curr.p.x+curr.p.r/2, curr.p.y+curr.p.r/2, curr.p.z-curr.p.r/2, curr.p.r/2);
+	        	pq.add(new Center(p2, countInRange(p2, c)));
+	        	Point p3 = new Point(curr.p.x+curr.p.r/2, curr.p.y-curr.p.r/2, curr.p.z+curr.p.r/2, curr.p.r/2);
+	        	pq.add(new Center(p3, countInRange(p3, c)));
+	        	Point p4 = new Point(curr.p.x-curr.p.r/2, curr.p.y+curr.p.r/2, curr.p.z+curr.p.r/2, curr.p.r/2);
+	        	pq.add(new Center(p4, countInRange(p4, c)));
+	        	Point p5 = new Point(curr.p.x+curr.p.r/2, curr.p.y-curr.p.r/2, curr.p.z-curr.p.r/2, curr.p.r/2);
+	        	pq.add(new Center(p5, countInRange(p5, c)));
+	        	Point p6 = new Point(curr.p.x-curr.p.r/2, curr.p.y+curr.p.r/2, curr.p.z-curr.p.r/2, curr.p.r/2);
+	        	pq.add(new Center(p6, countInRange(p6, c)));
+	        	Point p7 = new Point(curr.p.x-curr.p.r/2, curr.p.y-curr.p.r/2, curr.p.z+curr.p.r/2, curr.p.r/2);
+	        	pq.add(new Center(p7, countInRange(p7, c)));
+	        	Point p8 = new Point(curr.p.x-curr.p.r/2, curr.p.y-curr.p.r/2, curr.p.z-curr.p.r/2, curr.p.r/2);
+	        	pq.add(new Center(p8, countInRange(p8, c)));
         	}
         }
-        
-        System.out.println("Answer to the second part: " + shortest);
     }
     
-    private static void findAllCloseTo(Point p, ArrayList<Point> allInRange) {
-    	for (int x = p.x - p.r; x <= p.x + p.r; x++) {
-    		for (int y = p.y - p.r; y <= p.y + p.r; y++) {
-    			for (int z = p.z - p.r; z <= p.x + p.r; z++) {
-    				Point test = new Point(x, y, z, 0);
-    				if (p.inRange(test)) {
-    					if (allInRange.contains(test)) {
-    						allInRange.get(allInRange.indexOf(test)).count++;
-    					}
-    					else {
-    						allInRange.add(test);
-    					}
-    				}
-    			}
-    		}
+    private static int finalCount(Point test, ArrayList<Point> c) {
+    	int count = 0;
+    	for (Point p : c) {
+    		if (p.inRange(test)) count++;
     	}
+    	return count;
+    }
+    
+    private static int countInRange(Point test, ArrayList<Point> c) {
+    	int count = 0;
+    	for (Point p : c) {
+    		double dist = Math.sqrt(Math.pow(p.x - test.x, 2) + Math.pow(p.y - test.y, 2) + Math.pow(p.z - test.z, 2));
+    		double ratio = ((double)p.r) / dist, x = 0, y = 0, z = 0;
+    		if (ratio >= 1 || p.r >= dist) {
+    			count++;
+    			continue;
+    		}
+    		while (true) { // find where the bot ends on the path towards the current cube
+	    		x = (int)((1-ratio)*p.x+ratio*test.x);
+	    		y = (int)((1-ratio)*p.y+ratio*test.y);
+	    		z = (int)((1-ratio)*p.z+ratio*test.z);
+	    		if (Math.abs(x-p.x) + Math.abs(y-p.y) + Math.abs(z-p.z) > p.r) {
+	    			ratio -= 0.001;
+	    		}
+	    		else break;
+    		}
+    		// check if the bot's ending part is inside of the current cube
+    		if (x >= test.x - test.r && x <= test.x + test.r &&
+    			y >= test.y - test.r && y <= test.y + test.r &&
+    			z >= test.z - test.r && z <= test.z + test.r) count++;
+    	}
+    	return count;
     }
 }
 
